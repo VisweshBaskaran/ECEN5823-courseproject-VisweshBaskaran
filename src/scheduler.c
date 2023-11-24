@@ -154,7 +154,8 @@ void Temperature_State_Machine(sl_bt_msg_t *evt)
   State currentState = nextState;
 
   //Fixed logging issues with the first "if" condition, Visweshwaran Baskaran helped in the debug
-  if((SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id) && (ble_data->connection_open == true) && (ble_data->ok_to_send_htm_indications == true))
+  if((SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id) && (ble_data->connection_open == true))
+    //&& (ble_data->ok_to_send_htm_indications == true))
     {
       switch(currentState)
       {
@@ -355,7 +356,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
         {
           //  LOG_INFO("To Enable_Notification htm");
           //              LOG_INFO("\r\n Enable_Notification");
-          ble_data->ok_to_send_htm_indications = true;
+          //ble_data->ok_to_send_htm_indications = true;
           displayPrintf(DISPLAY_ROW_CONNECTION, "Handling Indications");
           nextState = Discover_Service_for_Button;
           // }
@@ -414,7 +415,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_gatt_procedure_completed_id)
       {
          // LOG_INFO("To SET_Notification_For_Button");
-      sc = sl_bt_gatt_set_characteristic_notification(ble_data->connection_handle, ble_data->characteristic_button, sl_bt_gatt_indication);
+      sc = sl_bt_gatt_set_characteristic_notification(ble_data->connection_handle, ble_data->characteristic_button, sl_bt_gatt_notification);
       if (sc != SL_STATUS_OK)
         LOG_ERROR("sl_bt_gatt_characteristic_notification() returned != 0 status=0x%04x", (unsigned int) sc);
       nextState = EN_Notification_For_Button;
@@ -432,8 +433,8 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
         {
         //  LOG_INFO("To EN_Notification_For_Button");
           //  LOG_INFO("To4");
-          //              LOG_INFO("\r\n Enable_Notification");
-          ble_data->button_indication = true;
+                        LOG_INFO("\r\n Enable_Notification");
+          ble_data->button_notification = true;
           displayPrintf(DISPLAY_ROW_CONNECTION, "Handling Indications");
           nextState = Idle;
           // }
