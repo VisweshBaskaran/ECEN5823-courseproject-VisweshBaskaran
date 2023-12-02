@@ -106,7 +106,7 @@ uint8_t security_mode;
 bool passkey;
 uint8_t bonding_handle;
 bool button_pressed_flag;
-bool button_indication;
+bool button_notification;
 //bool bonding;
 bool bonded;
 uint16_t reason;

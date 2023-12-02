@@ -466,7 +466,7 @@ void handle_ble_event(sl_bt_msg_t *evt)
        * or indications to the remote GATT client if the characteristic has a property
        * to indicate or notify and the client has enabled notification or indication.
        * Notifications and indications are sent to the remote GATT client using @ref
-       * sl_bt_gatt_server_send_notification or @ref sl_bt_gatt_server_send_indication
+       * sl_bt_gatt_server_send_notification or @ref sl_bt_gatt_server_send_notification
        * commands.
        *
        * @param[in] attribute Attribute handle
@@ -514,32 +514,29 @@ void handle_ble_event(sl_bt_msg_t *evt)
                     {
                       sl_bt_sm_passkey_confirm(ble_data.connection_handle, 1);
                     }
-                  if((ble_data.button_indication) && (ble_data.connection_open))
+                  if((ble_data.button_notification) && (ble_data.connection_open))
                     {
-                      if(ble_data.indication_in_flight == false)
-                        {
-                          sc = sl_bt_gatt_server_send_indication(ble_data.connection_handle,gattdb_button_state, sizeof(button_buffer), &button_buffer[0]);
+                      //if(ble_data.indication_in_flight == false)
+                       // {
+                          sc = sl_bt_gatt_server_send_notification(ble_data.connection_handle,gattdb_button_state, sizeof(button_buffer), &button_buffer[0]);
                           if (sc != SL_STATUS_OK)
                             {
-                              LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x", (unsigned int)sc);
-                            } else { // DOS
-                                ble_data.indication_in_flight = true;
-                                //LOG_INFO("Btn Ind P sent"); // DOS
+                              LOG_ERROR("sl_bt_gatt_server_send_notification() returned != 0 status=0x%04x", (unsigned int)sc);
+
                             }
-                        }
-                      else
-                        {
-                          //store indication in buffer
-                          // Call the write_queue function and check if it was successful
-                          // DOS bool writeSuccess = write_queue(gattdb_button_state, 1, button_buffer); // DOS - why 1 byte, it's 2 bytes, correct?
-                          bool writeSuccess = write_queue(gattdb_button_state, 2, &button_buffer[0]);
-                          if (writeSuccess != false)
-                            {
-                              LOG_ERROR("write_queue() returned != 0 status=0x%04x", (unsigned int) sc);
-                            } else {
-                               // LOG_INFO("Btn Ind P queued"); // DOS
-                            }
-                        }
+//                      else
+//                        {
+//                          //store indication in buffer
+//                          // Call the write_queue function and check if it was successful
+//                          // DOS bool writeSuccess = write_queue(gattdb_button_state, 1, button_buffer); // DOS - why 1 byte, it's 2 bytes, correct?
+//                          bool writeSuccess = write_queue(gattdb_button_state, 2, &button_buffer[0]);
+//                          if (writeSuccess != false)
+//                            {
+//                              LOG_ERROR("write_queue() returned != 0 status=0x%04x", (unsigned int) sc);
+//                            } else {
+//                               // LOG_INFO("Btn Ind P queued"); // DOS
+//                            }
+//                        }
                     }
                 }
 
@@ -552,32 +549,33 @@ void handle_ble_event(sl_bt_msg_t *evt)
                       displayPrintf(DISPLAY_ROW_ACTION, "");
                     }
 
-                  if((ble_data.button_indication) && (ble_data.connection_open))
+                  if((ble_data.button_notification) && (ble_data.connection_open))
                     {
-                      if(ble_data.indication_in_flight == false)
-                        {
-                          sc = sl_bt_gatt_server_send_indication(ble_data.connection_handle,gattdb_button_state, sizeof(button_buffer), &button_buffer[0]);
+//                      if(ble_data.indication_in_flight == false)
+//                        {
+                          sc = sl_bt_gatt_server_send_notification(ble_data.connection_handle,gattdb_button_state, sizeof(button_buffer), &button_buffer[0]);
                           if (sc != SL_STATUS_OK)
                             {
-                              LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x", (unsigned int) sc);
-                            } else {
-                                ble_data.indication_in_flight = true;
-                               // LOG_INFO("Btn Ind R sent"); // DOS
-                            }
-                        }
-                      else
-                        {
-                          //store indication in buffer
-                          // Call the write_queue function and check if it was successful
-                          // DOS bool writeSuccess = write_queue(gattdb_button_state, 1, button_buffer); // DOS - why 1 byte, it's 2 bytes, correct?
-                          bool writeSuccess = write_queue(gattdb_button_state, 2, &button_buffer[0]);
-                          if (writeSuccess != false)
-                            {
-                              LOG_ERROR("write_queue() returned != 0 status=0x%04x", (unsigned int) sc);
-                            } else {
-                               // LOG_INFO("Btn Ind R queued"); // DOS
-                            }
-                        }
+                              LOG_ERROR("sl_bt_gatt_server_send_notification() returned != 0 status=0x%04x", (unsigned int) sc);
+                           }
+                          //    else {
+//                                ble_data.indication_in_flight = true;
+//                               // LOG_INFO("Btn Ind R sent"); // DOS
+//                            }
+//                        }
+//                      else
+//                        {
+//                          //store indication in buffer
+//                          // Call the write_queue function and check if it was successful
+//                          // DOS bool writeSuccess = write_queue(gattdb_button_state, 1, button_buffer); // DOS - why 1 byte, it's 2 bytes, correct?
+//                          bool writeSuccess = write_queue(gattdb_button_state, 2, &button_buffer[0]);
+//                          if (writeSuccess != false)
+//                            {
+//                              LOG_ERROR("write_queue() returned != 0 status=0x%04x", (unsigned int) sc);
+//                            } else {
+//                               // LOG_INFO("Btn Ind R queued"); // DOS
+//                            }
+//                        }
                     }
                 }
             }
@@ -607,51 +605,51 @@ void handle_ble_event(sl_bt_msg_t *evt)
 
     case sl_bt_evt_gatt_server_characteristic_status_id:
       //LOG_INFO("\r\n sl_bt_evt_gatt_server_characteristic_status_id");
-      if(evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_temperature_measurement)
-        {     //write of CCCD for htm
-          // client confirmation has been changed
-          if(evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_client_config)
-            {
-              //  the changes happened is equal to the indication button pressed
-              if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_indication)
-                {
-
-                  ble_data.ok_to_send_htm_indications = true;
-                  displayPrintf(DISPLAY_ROW_9, "");
-                  gpioLed0SetOn();
-
-                }
-              //  again the changes happened is the indication button pressed to close
-              if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_disable)
-                {
-
-                  ble_data.ok_to_send_htm_indications = false;
-                  displayPrintf(DISPLAY_ROW_TEMPVALUE, "Temp= "," " );
-                  displayPrintf(DISPLAY_ROW_9, "");
-                  gpioLed0SetOff();
-
-                }
-            }
-
-          //write of CCCD for htm
-          // client confirmation has been changed
-          // client configuration has been successfully received
-          if(evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_confirmation)
-            {
-              ble_data.indication_in_flight = false;
-            }
-
-        }
+//      if(evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_temperature_measurement)
+//        {     //write of CCCD for htm
+//          // client confirmation has been changed
+//          if(evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_client_config)
+//            {
+//              //  the changes happened is equal to the indication button pressed
+//              if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_indication)
+//                {
+//
+//                  ble_data.ok_to_send_htm_indications = true;
+//                  displayPrintf(DISPLAY_ROW_9, "");
+//                  gpioLed0SetOn();
+//
+//                }
+//              //  again the changes happened is the indication button pressed to close
+//              if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_disable)
+//                {
+//
+//                  ble_data.ok_to_send_htm_indications = false;
+//                  displayPrintf(DISPLAY_ROW_TEMPVALUE, "Temp= "," " );
+//                  displayPrintf(DISPLAY_ROW_9, "");
+//                  gpioLed0SetOff();
+//
+//                }
+//            }
+//
+//          //write of CCCD for htm
+//          // client confirmation has been changed
+//          // client configuration has been successfully received
+//          if(evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_confirmation)
+//            {
+//              //ble_data.indication_in_flight = false;
+//            }
+//
+//        }
 
       if(evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_button_state)
         {
           if(evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_client_config)
             {
               //  the changes happened is equal to the indication button pressed
-              if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_indication)
+              if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_notification)
                 {
 
-                  ble_data.button_indication = true;
+                  ble_data.button_notification = true;
                   displayPrintf(DISPLAY_ROW_9, "Button Released");
                   gpioLed1SetOn();
 
@@ -660,7 +658,7 @@ void handle_ble_event(sl_bt_msg_t *evt)
               if(evt->data.evt_gatt_server_characteristic_status.client_config_flags == sl_bt_gatt_server_disable)
                 {
 
-                  ble_data.button_indication = false;
+                  ble_data.button_notification = false;
 
                   displayPrintf(DISPLAY_ROW_9, "");
                   gpioLed1SetOff();
@@ -668,17 +666,17 @@ void handle_ble_event(sl_bt_msg_t *evt)
                 }
             }
           // client configuration has been successfully received
-          if(evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_confirmation)
-            {
-              ble_data.indication_in_flight = false;
-            }
+//          if(evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_confirmation)
+//            {
+//             // ble_data.indication_in_flight = false;
+//            }
         }
 
       break;
 
     case sl_bt_evt_gatt_server_indication_timeout_id:
       LOG_ERROR("\r\nLOG_ERROR: Indication timed-out. No acknowledgement received\r\n");
-      ble_data.indication_in_flight = false;
+     // ble_data.indication_in_flight = false;
       break;
 
     case sl_bt_evt_system_soft_timer_id:
@@ -718,10 +716,10 @@ void handle_ble_event(sl_bt_msg_t *evt)
       displayPrintf(DISPLAY_ROW_NAME, "Client");
       // handle boot event
       ble_data.connection_open = false;
-      //ble_data.ok_to_send_htm_indications = false;
+      ble_data.ok_to_send_htm_indications = false;
       ble_data.procedure_complete_flag = false;
       ble_data.connection_open = false;
-      ble_data.button_indication = true; // DOS - always initialize variables!!! state machine initially enables, so set true
+      ble_data.button_notification = true; // DOS - always initialize variables!!! state machine initially enables, so set true
       /***************************************************************************//**
        *
        * Read the Bluetooth identity address used by the device, which can be a public
@@ -968,21 +966,21 @@ void handle_ble_event(sl_bt_msg_t *evt)
 
     case sl_bt_evt_gatt_characteristic_value_id:
      // LOG_INFO("\r\n sl_bt_evt_gatt_characteristic_value_id");
-      if( (evt->data.evt_gatt_characteristic_value.characteristic == ble_data.characteristic_htm) &&
-          (evt->data.evt_gatt_characteristic_value.att_opcode == sl_bt_gatt_handle_value_indication))
-        {
-          //LOG_INFO("\r\n htm Indication");
-          ble_data.Temp_Value = FLOAT_TO_INT32(evt->data.evt_gatt_characteristic_value.value.data);
+//      if( (evt->data.evt_gatt_characteristic_value.characteristic == ble_data.characteristic_htm) &&
+//          (evt->data.evt_gatt_characteristic_value.att_opcode == sl_bt_gatt_handle_value_indication))
+//        {
+//          //LOG_INFO("\r\n htm Indication");
+//          ble_data.Temp_Value = FLOAT_TO_INT32(evt->data.evt_gatt_characteristic_value.value.data);
+//
+//          sc = sl_bt_gatt_send_characteristic_confirmation(evt->data.evt_gatt_characteristic_value.connection);
+//          if (sc != SL_STATUS_OK)
+//            {
+//              LOG_ERROR("sl_bt_gatt_send_characteristic_confirmation() returned != 0 status=0x%04x", (unsigned int) sc);
+//            }
+//          displayPrintf(DISPLAY_ROW_TEMPVALUE, "Temp= %d C", ble_data.Temp_Value);
+//        }
 
-          sc = sl_bt_gatt_send_characteristic_confirmation(evt->data.evt_gatt_characteristic_value.connection);
-          if (sc != SL_STATUS_OK)
-            {
-              LOG_ERROR("sl_bt_gatt_send_characteristic_confirmation() returned != 0 status=0x%04x", (unsigned int) sc);
-            }
-          displayPrintf(DISPLAY_ROW_TEMPVALUE, "Temp= %d C", ble_data.Temp_Value);
-        }
-
-      if ((evt->data.evt_gatt_characteristic_value.characteristic == ble_data.characteristic_button) &&    evt-> data.evt_gatt_characteristic_value.att_opcode == sl_bt_gatt_handle_value_indication)
+      if ((evt->data.evt_gatt_characteristic_value.characteristic == ble_data.characteristic_button) &&    evt-> data.evt_gatt_characteristic_value.att_opcode == sl_bt_gatt_handle_value_notification)
         {
           //LOG_INFO("\r\n button Indication");
           if(evt->data.evt_gatt_characteristic_value.value.data[1]==1)
@@ -995,12 +993,12 @@ void handle_ble_event(sl_bt_msg_t *evt)
               displayPrintf(DISPLAY_ROW_9, "Button Released");
             }
 
-          sc = sl_bt_gatt_send_characteristic_confirmation(evt->data.evt_gatt_characteristic_value.connection);
-
-          if (sc != SL_STATUS_OK)
-            {
-              LOG_ERROR("sl_bt_gatt_send_characteristic_confirmation() returned != 0 status=0x%04x", (unsigned int) sc);
-            }
+//          sc = sl_bt_gatt_send_characteristic_confirmation(evt->data.evt_gatt_characteristic_value.connection);
+//
+//          if (sc != SL_STATUS_OK)
+//            {
+//              LOG_ERROR("sl_bt_gatt_send_characteristic_confirmation() returned != 0 status=0x%04x", (unsigned int) sc);
+//            }
         }
 
       if ((evt->data.evt_gatt_characteristic_value.characteristic == ble_data.characteristic_button) &&   evt-> data.evt_gatt_characteristic_value.att_opcode == sl_bt_gatt_read_response)
@@ -1053,12 +1051,12 @@ void handle_ble_event(sl_bt_msg_t *evt)
           (evt->data.evt_system_external_signal.extsignals & evtPB1Push))
           {
         //  LOG_INFO("\r\n toggle indications");
-          ble_data.button_indication = !ble_data.button_indication;
-          if(ble_data.button_indication)
+          ble_data.button_notification = !ble_data.button_notification;
+          if(ble_data.button_notification)
           {
             sc = sl_bt_gatt_set_characteristic_notification(ble_data.connection_handle,
                                                               ble_data.characteristic_button,
-                                                              sl_bt_gatt_indication); // enable indications
+                                                              sl_bt_gatt_notification); // enable indications
             if (sc != SL_STATUS_OK)
            {
              LOG_ERROR("sl_bt_gatt_set_characteristic_notification() diaable returned != 0 status=0x%04x", (unsigned int) sc);
@@ -1156,6 +1154,7 @@ void handle_ble_event(sl_bt_msg_t *evt)
 #endif
 }
 
+
 void TemperatuetoFloat(uint32_t temperature_in_c)
 {
   uint8_t htm_temperature_buffer[5];
@@ -1183,10 +1182,10 @@ void TemperatuetoFloat(uint32_t temperature_in_c)
 
   if ((ble_data.ok_to_send_htm_indications) && (ble_data.connection_open))
     {
-      if(ble_data.indication_in_flight == false)
-        {
+     if(ble_data.indication_in_flight == false)
+       {
 
-          sc = sl_bt_gatt_server_send_indication
+          sc = sl_bt_gatt_server_send_notification
               (
                   ble_data.connection_handle,
                   gattdb_temperature_measurement, // handle from gatt_db.h
@@ -1195,7 +1194,7 @@ void TemperatuetoFloat(uint32_t temperature_in_c)
               );
           if (sc != SL_STATUS_OK)
             {
-              LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x", (unsigned int) sc);
+              LOG_ERROR("sl_bt_gatt_server_send_notification() returned != 0 status=0x%04x", (unsigned int) sc);
             }
           else
             {
@@ -1204,7 +1203,7 @@ void TemperatuetoFloat(uint32_t temperature_in_c)
               displayPrintf(DISPLAY_ROW_TEMPVALUE, "Temp= %d C", temperature_in_c);
               //LOG_INFO("HTM Ind sent"); // DOS
             }
-        }
+       }
       else
         {
           // DOS            bool writeSuccess = write_queue(gattdb_temperature_measurement, sizeof(htm_temperature_buffer), htm_temperature_buffer);
@@ -1253,34 +1252,33 @@ int32_t FLOAT_TO_INT32(const uint8_t *value_start_little_endian)
 
 void handleSystemSsofttimer( ble_data_struct_t *BleData)
 {
-  //  if(evt->data.evt_system_soft_timer.handle == 1)
-  //    {
-  if((BleData->indication_in_flight == false) && (get_queue_depth()>0))
-    {
-      // read indication
-
-      // DOS           bool readSuccess = read_queue(&charHandle, &bufferLength, buffer);
-      bool readSuccess = read_queue(&charHandle, &bufferLength, &buffer[0]);
-      if (readSuccess)
-        {
-          LOG_ERROR("\r\nError reading circular buffer");
-        }
-      else
-        {
+//    if(evt->data.evt_system_soft_timer.handle == 1)
+//      {
+ // if((get_queue_depth()>0))   //(BleData->indication_in_flight == false)
+//    {
+//      // read indication
+//
+//      // DOS           bool readSuccess = read_queue(&charHandle, &bufferLength, buffer);
+//      bool readSuccess = read_queue(&charHandle, &bufferLength, &buffer[0]);
+//      if (readSuccess)
+//        {
+//          LOG_ERROR("\r\nError reading circular buffer");
+//        }
+//      else
+        //{
           //send indication and flag inflight
-          // DOS               sc = sl_bt_gatt_server_send_indication(ble_data.connection_handle, charHandle, sizeof(buffer), &buffer[0]);
-          sc = sl_bt_gatt_server_send_indication(ble_data.connection_handle, charHandle, bufferLength, &buffer[0]);
+          // DOS               sc = sl_bt_gatt_server_send_notification(ble_data.connection_handle, charHandle, sizeof(buffer), &buffer[0]);
+          sc = sl_bt_gatt_server_send_notification(ble_data.connection_handle, charHandle, bufferLength, &buffer[0]);
           if (sc != SL_STATUS_OK)
             {
-              LOG_ERROR("sl_bt_gatt_server_send_indication() returned != 0 status=0x%04x", (unsigned int) sc);
+              LOG_ERROR("sl_bt_gatt_server_send_notification() returned != 0 status=0x%04x", (unsigned int) sc);
             }
-          else
-            {
-              ble_data.indication_in_flight = true;
-              //("Sent deferred Ind, length=%d", (int) bufferLength);
-            }
+//          else
+//            {
+//              ble_data.indication_in_flight = true;
+//              //("Sent deferred Ind, length=%d", (int) bufferLength);
+//            }
           // Process the data read from the queue using charHandle, bufferLength, and buffer.
-        }
-    }
-  //    }
+
+      //}
 }

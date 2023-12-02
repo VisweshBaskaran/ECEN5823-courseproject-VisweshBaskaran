@@ -37,7 +37,7 @@ GATT_DATA(const sli_bt_gattdb_value_t gattdb_attribute_field_34) = {
   .data = { 0xf0, 0x19, 0x21, 0xb4, 0x47, 0x8f, 0xa4, 0xbf, 0xa1, 0x4f, 0x63, 0xfd, 0xee, 0xd6, 0x14, 0x1d, }
 };
 GATT_DATA(sli_bt_gattdb_attribute_chrvalue_t gattdb_attribute_field_32) = {
-  .properties = 0x22,
+  .properties = 0x12,
   .max_len = 1,
   .data = { 0x00, },
 };
@@ -152,9 +152,9 @@ GATT_DATA(const sli_bt_gattdb_attribute_t gattdb_attributes_map[]) = {
   { .handle = 0x1d, .uuid = 0x000a, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x01, .dynamicdata = &gattdb_attribute_field_28 },
   { .handle = 0x1e, .uuid = 0x000b, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x01, .dynamicdata = &gattdb_attribute_field_29 },
   { .handle = 0x1f, .uuid = 0x0000, .permissions = 0x8801, .caps = 0xffff, .state = 0x00, .datatype = 0x00, .constdata = &gattdb_attribute_field_30 },
-  { .handle = 0x20, .uuid = 0x0002, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x05, .characteristic = { .properties = 0x22, .char_uuid = 0x8000 } },
+  { .handle = 0x20, .uuid = 0x0002, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x05, .characteristic = { .properties = 0x12, .char_uuid = 0x8000 } },
   { .handle = 0x21, .uuid = 0x8000, .permissions = 0x4841, .caps = 0xffff, .state = 0x00, .datatype = 0x01, .dynamicdata = &gattdb_attribute_field_32 },
-  { .handle = 0x22, .uuid = 0x000c, .permissions = 0x803, .caps = 0xffff, .state = 0x00, .datatype = 0x03, .configdata = { .flags = 0x02, .clientconfig_index = 0x03 } },
+  { .handle = 0x22, .uuid = 0x000c, .permissions = 0x803, .caps = 0xffff, .state = 0x00, .datatype = 0x03, .configdata = { .flags = 0x01, .clientconfig_index = 0x03 } },
   { .handle = 0x23, .uuid = 0x0000, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x00, .constdata = &gattdb_attribute_field_34 },
   { .handle = 0x24, .uuid = 0x0002, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x05, .characteristic = { .properties = 0x08, .char_uuid = 0x8001 } },
   { .handle = 0x25, .uuid = 0x8001, .permissions = 0x802, .caps = 0xffff, .state = 0x00, .datatype = 0x07, .dynamicdata = NULL },

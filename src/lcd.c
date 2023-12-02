@@ -260,7 +260,7 @@ void displayInit()
     //gpioSensorEnSetOn(); // we need SENSOR_ENABLE=1 which is tied to DISP_ENABLE
     //                     // for the LCD, on all the time now
 
-    TempSensorInit();
+    //TempSensorInit();
 
     // Init the dot matrix display data structure
     display->dmdInitConfig = 0;

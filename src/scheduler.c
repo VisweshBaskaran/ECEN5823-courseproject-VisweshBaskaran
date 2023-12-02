@@ -145,141 +145,142 @@ void schedularSetI2CEvent()
 #ifdef DEVICE_IS_BLE_SERVER
 
 #if (DEVICE_IS_BLE_SERVER == 1)
-void Temperature_State_Machine(sl_bt_msg_t *evt)
-{
-  ble_data_struct_t *ble_data = getBleDataPtr();
-
-  I2C_TransferReturn_TypeDef transferStatus;
-  static State nextState = State_WaitforUF;
-  State currentState = nextState;
-
-  //Fixed logging issues with the first "if" condition, Visweshwaran Baskaran helped in the debug
-  if((SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id) && (ble_data->connection_open == true) && (ble_data->ok_to_send_htm_indications == true))
-    {
-      switch(currentState)
-      {
-
-        //Initialize the Temperature Sensor and wait for 80 ms
-        case State_WaitforUF:
-          // LOG_INFO("\r\n State_WaitforUF");
-          nextState = State_WaitforUF;
-          if(evt->data.evt_system_external_signal.extsignals)
-            {
-              if(evtgetTemperature)
-                {
-
-                  TempSensorInit();
-                  timerWaitUs_irq(80000);
-                  nextState = State_I2CWrite;
-
-                }
-            }
-
-          break;
-
-          //Initialize the I2C Request the Temperature Sensor reading
-          //Add power requirement for ble
-        case State_I2CWrite:
-          //  LOG_INFO("\r\n State_I2CWrite");
-          nextState = State_I2CWrite;
-          if(evt->data.evt_system_external_signal.extsignals)
-            {
-              if( evtCOMP1interrupt)
-                {
-
-                  I2CInit();
-                  askTemperature();
-                  sl_power_manager_add_em_requirement(1);
-                  nextState = State_WaitforI2CComplete;
-                }
-            }
-          break;
-
-          //Check transfer status of last I2C transaction, if done disable the I2C irq
-          //Wait for 10.8 ms and remove the power requirement
-        case State_WaitforI2CComplete:
-          // LOG_INFO("\r\n State_WaitforI2CComplete");
-          nextState = State_WaitforI2CComplete;
-          if(evt->data.evt_system_external_signal.extsignals)
-            {
-              if(evtI2CTransferDone)
-
-                {
-
-                  transferStatus = gettransferStatus();
-
-                  if (transferStatus == i2cTransferDone)
-                    {
-                      NVIC_DisableIRQ(I2C0_IRQn);
-                    }
-                  else
-                    {
-                    //  LOG_ERROR("I2C_Transfer Failed: %d",transferStatus);
-                    }
-                  timerWaitUs_irq(10800);
-                  sl_power_manager_remove_em_requirement(1);
-                  nextState = State_I2CRead;
-                }
-            }
-          break;
-
-          //Read the Temperature data and add the power requirement
-        case State_I2CRead:
-          //  LOG_INFO("\r\n State_I2CRead");
-          nextState = State_I2CRead;
-          if(evt->data.evt_system_external_signal.extsignals)
-            {
-              if(evtCOMP1interrupt)
-                {
-
-                  readTemperature();
-                  sl_power_manager_add_em_requirement(1);
-                  nextState = State_ReaDTeMP;
-
-                }
-            }
-          break;
-
-          //Check transfer status of last I2C transaction, if done disable the I2C irq
-          //Print the Temperature data
-        case State_ReaDTeMP:
-          //  LOG_INFO("\r\n State_ReaDTeMP");
-          nextState = State_ReaDTeMP;
-
-          if(evt->data.evt_system_external_signal.extsignals)
-            {
-
-              if( evtI2CTransferDone)
-                {
-
-                  transferStatus = gettransferStatus();
-
-                  if (transferStatus == i2cTransferDone)
-                    {
-                      NVIC_DisableIRQ(I2C0_IRQn);
-                    }
-                  else
-                    {
-                      LOG_ERROR("I2C_Transfer Failed: %d",transferStatus);
-                    }
-
-                  int32_t temp_in_c = printTemperature();
-                  TemperatuetoFloat(temp_in_c);
-                  // Make sure to prevent turning off GPIO from state machine
-                  // to keep the LCD going
-                  // TempSensorDeinit();
-                  sl_power_manager_remove_em_requirement(1);
-                  nextState = State_WaitforUF;
-                }
-            }
-          break;
-
-          //Log the error if event sensed is not registered
-        default:
-          break;
-      }
-    }
-}
+//void Temperature_State_Machine(sl_bt_msg_t *evt)
+//{
+//  ble_data_struct_t *ble_data = getBleDataPtr();
+//
+//  I2C_TransferReturn_TypeDef transferStatus;
+//  static State nextState = State_WaitforUF;
+//  State currentState = nextState;
+//
+//  //Fixed logging issues with the first "if" condition, Visweshwaran Baskaran helped in the debug
+//  if((SL_BT_MSG_ID(evt->header) == sl_bt_evt_system_external_signal_id) && (ble_data->connection_open == true))
+//    //&& (ble_data->ok_to_send_htm_indications == true))
+//    {
+//      switch(currentState)
+//      {
+//
+//        //Initialize the Temperature Sensor and wait for 80 ms
+//        case State_WaitforUF:
+//          // LOG_INFO("\r\n State_WaitforUF");
+//          nextState = State_WaitforUF;
+//          if(evt->data.evt_system_external_signal.extsignals)
+//            {
+//              if(evtgetTemperature)
+//                {
+//
+//                  //TempSensorInit();
+//                  timerWaitUs_irq(80000);
+//                  nextState = State_I2CWrite;
+//
+//                }
+//            }
+//
+//          break;
+//
+//          //Initialize the I2C Request the Temperature Sensor reading
+//          //Add power requirement for ble
+//        case State_I2CWrite:
+//          //  LOG_INFO("\r\n State_I2CWrite");
+//          nextState = State_I2CWrite;
+//          if(evt->data.evt_system_external_signal.extsignals)
+//            {
+//              if( evtCOMP1interrupt)
+//                {
+//
+//                  I2CInit();
+//                  //askTemperature();
+//                  sl_power_manager_add_em_requirement(1);
+//                  nextState = State_WaitforI2CComplete;
+//                }
+//            }
+//          break;
+//
+//          //Check transfer status of last I2C transaction, if done disable the I2C irq
+//          //Wait for 10.8 ms and remove the power requirement
+//        case State_WaitforI2CComplete:
+//          // LOG_INFO("\r\n State_WaitforI2CComplete");
+//          nextState = State_WaitforI2CComplete;
+//          if(evt->data.evt_system_external_signal.extsignals)
+//            {
+//              if(evtI2CTransferDone)
+//
+//                {
+//
+//                  transferStatus = gettransferStatus();
+//
+//                  if (transferStatus == i2cTransferDone)
+//                    {
+//                      NVIC_DisableIRQ(I2C0_IRQn);
+//                    }
+//                  else
+//                    {
+//                    //  LOG_ERROR("I2C_Transfer Failed: %d",transferStatus);
+//                    }
+//                  timerWaitUs_irq(10800);
+//                  sl_power_manager_remove_em_requirement(1);
+//                  nextState = State_I2CRead;
+//                }
+//            }
+//          break;
+//
+//          //Read the Temperature data and add the power requirement
+//        case State_I2CRead:
+//          //  LOG_INFO("\r\n State_I2CRead");
+//          nextState = State_I2CRead;
+//          if(evt->data.evt_system_external_signal.extsignals)
+//            {
+//              if(evtCOMP1interrupt)
+//                {
+//
+//                  //readTemperature();
+//                  sl_power_manager_add_em_requirement(1);
+//                  nextState = State_ReaDTeMP;
+//
+//                }
+//            }
+//          break;
+//
+//          //Check transfer status of last I2C transaction, if done disable the I2C irq
+//          //Print the Temperature data
+//        case State_ReaDTeMP:
+//          //  LOG_INFO("\r\n State_ReaDTeMP");
+//          nextState = State_ReaDTeMP;
+//
+//          if(evt->data.evt_system_external_signal.extsignals)
+//            {
+//
+//              if( evtI2CTransferDone)
+//                {
+//
+//                  transferStatus = gettransferStatus();
+//
+//                  if (transferStatus == i2cTransferDone)
+//                    {
+//                      NVIC_DisableIRQ(I2C0_IRQn);
+//                    }
+//                  else
+//                    {
+//                      LOG_ERROR("I2C_Transfer Failed: %d",transferStatus);
+//                    }
+//
+//                  int32_t temp_in_c = printTemperature();
+//                  TemperatuetoFloat(temp_in_c);
+//                  // Make sure to prevent turning off GPIO from state machine
+//                  // to keep the LCD going
+//                  // TempSensorDeinit();
+//                  sl_power_manager_remove_em_requirement(1);
+//                  nextState = State_WaitforUF;
+//                }
+//            }
+//          break;
+//
+//          //Log the error if event sensed is not registered
+//        default:
+//          break;
+//      }
+//    }
+//}
 
 #else
 
@@ -355,7 +356,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
         {
           //  LOG_INFO("To Enable_Notification htm");
           //              LOG_INFO("\r\n Enable_Notification");
-          ble_data->ok_to_send_htm_indications = true;
+          //ble_data->ok_to_send_htm_indications = true;
           displayPrintf(DISPLAY_ROW_CONNECTION, "Handling Indications");
           nextState = Discover_Service_for_Button;
           // }
@@ -414,7 +415,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_gatt_procedure_completed_id)
       {
          // LOG_INFO("To SET_Notification_For_Button");
-      sc = sl_bt_gatt_set_characteristic_notification(ble_data->connection_handle, ble_data->characteristic_button, sl_bt_gatt_indication);
+      sc = sl_bt_gatt_set_characteristic_notification(ble_data->connection_handle, ble_data->characteristic_button, sl_bt_gatt_notification);
       if (sc != SL_STATUS_OK)
         LOG_ERROR("sl_bt_gatt_characteristic_notification() returned != 0 status=0x%04x", (unsigned int) sc);
       nextState = EN_Notification_For_Button;
@@ -432,8 +433,8 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
         {
         //  LOG_INFO("To EN_Notification_For_Button");
           //  LOG_INFO("To4");
-          //              LOG_INFO("\r\n Enable_Notification");
-          ble_data->button_indication = true;
+                        LOG_INFO("\r\n Enable_Notification");
+          ble_data->button_notification = true;
           displayPrintf(DISPLAY_ROW_CONNECTION, "Handling Indications");
           nextState = Idle;
           // }

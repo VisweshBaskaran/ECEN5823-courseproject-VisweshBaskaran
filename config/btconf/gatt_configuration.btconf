@@ -147,7 +147,7 @@ When used with the Measurement Interval characteristic, the Valid Range descript
       <value length="1" type="hex" variable_length="false">00</value>
       <properties>
         <read authenticated="false" bonded="true" encrypted="false"/>
-        <indicate authenticated="false" bonded="true" encrypted="false"/>
+        <notify authenticated="false" bonded="true" encrypted="false"/>
       </properties>
 
       <!--Client Characteristic Configuration-->

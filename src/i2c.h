@@ -20,14 +20,12 @@
 
 #include <stdint.h>
 
-#define SI7021_DEVICE_ADDR (0x40)
+//#define SI7021_DEVICE_ADDR (0x40)
+#define APDS9960_DEVICE_ADDR (0x39)
+
+
 
 #define Measure_Temperature (0xF3)
-
-//Defines for Calibration Purpose
-#define MULTIPLER (float)(175.72)
-#define DIVIDE_BY (float)(65536.0)
-#define OFFSET_CALIBRATION (float)(46.85)
 
 /*
 @author         Aditi Nanaware
@@ -42,45 +40,13 @@ void I2CInit();
 
 /*
 @author         Aditi Nanaware
-@function name  TempSensorInit
-@brief          functionality of initializing the Temperature sensor
-                SI7021 is implemented in this function.
-@param          none
-@return         void
-@resources      Lecture Slides
-*/
-void TempSensorInit();
-
-/*
-@author         Aditi Nanaware
-@function name  TempSensorDeinit
-@brief          functionality of de-initializing the Temperature sensor
-                SI7021 is implemented in this function.
-@param          none
-@return         void
-@resources      Lecture Slides
-*/
-void TempSensorDeinit();
-
-/*
-@author         Aditi Nanaware
-@function name  readTemperature
-@brief          functionality of read i2c cycle is implemented in this function.
-@param          none
-@return         void
-@resources      Lecture Slides
-*/
-void readTemperature();
-
-/*
-@author         Aditi Nanaware
 @function name  askTemperature
 @brief          functionality of write i2c cycle is implemented in this function.
 @param          none
 @return         void
 @resources      Lecture Slides
 */
-void askTemperature();
+uint32_t write_read(uint8_t reg, uint8_t *Data);
 
 /*
 @author         Aditi Nanaware
@@ -93,7 +59,7 @@ void askTemperature();
 @return         void
 @resources      Lecture Slides
 */
-void read_temp_from_si7021();
+uint32_t write_write(uint8_t reg, uint8_t *Data);
 
 /*
 @author         Aditi Nanaware
@@ -104,6 +70,6 @@ void read_temp_from_si7021();
 @return         int32_t
 @resources      Lecture Slides
 */
-int32_t printTemperature();
+uint32_t read_read(uint8_t reg, uint8_t *Data, uint8_t len);
 
 #endif /* SRC_I2C_H_ */
