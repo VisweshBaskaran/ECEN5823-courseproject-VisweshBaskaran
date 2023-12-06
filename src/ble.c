@@ -721,10 +721,11 @@ void handle_ble_event(sl_bt_msg_t *evt)
       displayPrintf(DISPLAY_ROW_NAME, "Client");
       // handle boot event
       ble_data.connection_open = false;
-      //ble_data.ok_to_send_htm_indications = false;
+      ble_data.ok_to_send_htm_indications = false;
       ble_data.procedure_complete_flag = false;
       ble_data.connection_open = false;
       ble_data.button_notification = true; // DOS - always initialize variables!!! state machine initially enables, so set true
+
       ble_data.gesture_notification = true;
       /***************************************************************************//**
        *
@@ -1264,6 +1265,7 @@ void handle_ble_event(sl_bt_msg_t *evt)
 //        }
 //    }
 //}
+
 
 
 // -----------------------------------------------

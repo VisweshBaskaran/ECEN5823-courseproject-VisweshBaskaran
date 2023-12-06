@@ -107,6 +107,7 @@ bool passkey;
 uint8_t bonding_handle;
 bool button_pressed_flag;
 bool button_notification;
+<<<<<<< HEAD
 
 bool gesture_notification;
 uint32_t client_service_handle_gesture;
@@ -114,6 +115,8 @@ uint16_t characteristic_gesture;
 uint8_t gesture_value;
 bool is_gesture_on;
 
+=======
+>>>>>>> cecdbcbf68c7d2b77c879c01b95288ed7c96873c
 //bool bonding;
 bool bonded;
 uint16_t reason;
