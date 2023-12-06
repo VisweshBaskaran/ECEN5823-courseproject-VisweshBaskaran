@@ -30,6 +30,7 @@
 #define INCLUDE_LOG_DEBUG 1
 #include "src/log.h"
 #include "i2c.h"
+#include "timers.h"
 //Add other include files here
 
 #include "SparkFun_APDS9960.h"
@@ -50,9 +51,9 @@ int gesture_motion;
 bool interrupts = true;
 
 gesture_data_type gestureData;
-gesture_data_type* getGestureDataptr();
+gesture_data_type* getGestureDataPtr();
 
-gesture_data_type* getGestureDataptr()
+gesture_data_type* getGestureDataPtr()
 {
  return (&gestureData);
 }
@@ -230,17 +231,17 @@ bool SparkFun_APDS9960_init()
 // *
 // * @return Contents of the ENABLE register. 0xFF if error.
 // */
-//uint8_t SparkFun_APDS9960::getMode()
-//{
-//    uint8_t enable_value;
-//
-//    /* Read current ENABLE register */
-//    if( !wireReadDataByte(APDS9960_ENABLE, enable_value) ) {
-//        return ERROR;
-//    }
-//
-//    return enable_value;
-//}
+uint8_t getMode()
+{
+    uint8_t enable_value = 0;
+
+    /* Read current ENABLE register */
+    if( write_read(APDS9960_ENABLE, enable_value) != 1) {
+        return ERROR;
+    }
+
+    return enable_value;
+}
 
 /**
  * @brief Enables or disables a feature in the APDS-9960
@@ -457,7 +458,8 @@ int readGesture()
     while(1) {
 
         /* Wait some time to collect next batch of FIFO data */
-        delay(FIFO_PAUSE_TIME);
+        //delay(FIFO_PAUSE_TIME);
+        timerWaitUs_irq(FIFO_PAUSE_TIME);
 
         /* Get the contents of the STATUS register. Is data still valid? */
         if( write_read(APDS9960_GSTATUS, &gstatus) != 1) {
@@ -536,7 +538,7 @@ int readGesture()
         } else {
 
             /* Determine best guessed gesture and clean up */
-            timerWaitUs_polled(FIFO_PAUSE_TIME);
+            timerWaitUs_irq(FIFO_PAUSE_TIME);
             decodeGesture();
             motion = gesture_motion;
 #if DEBUG

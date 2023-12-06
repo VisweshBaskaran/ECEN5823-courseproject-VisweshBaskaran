@@ -22,6 +22,7 @@
 #include "i2c.h"
 #include "timers.h"
 #include "em_common.h"
+#include "ble.h"
 
 #define INCLUDE_LOG_DEBUG 1
 #include "log.h"
@@ -30,9 +31,15 @@
 #include "i2c.h"
 #include "ble.h"
 #include "gpio.h"
+#include "SparkFun_APDS9960.h"
 
 uint8_t SERVICE_UUID_BUTTON[16] = {0x89, 0x62, 0x13, 0x2d, 0x2a, 0x65, 0xec, 0x87, 0x3e, 0x43, 0xc8, 0x38, 0x01, 0x00, 0x00, 0x00};
 
+
+//d0f91623-3899-42ee-9065-068d102e979e
+//uint8_t GESTURE_SERVICE_UUID[16] = {0x9e, 0x97, 0x2e, 0x10, 0x8d, 0x06, 0x65, 0x90, 0xee, 0x42, 0x99, 0x38, 0x23, 0x16, 0xf9, 0xd0};
+                                          //32e63db9-2c64-400f-838e-08d4e2cfdf9a
+//uint8_t GESTURE_CHAR_UUID[16] = {0x9a, 0xdf, 0xcf, 0xe2, 0xd4, 0x08, 0x8e, 0x83, 0x0f, 0x40, 0x64, 0x2c, 0xb9, 0x3d, 0xe6, 0x32};
 //global variable to store events
 uint32_t myevents = 0;
 
@@ -106,6 +113,19 @@ void schedularSetI2CEvent()
   CORE_EXIT_CRITICAL();
 }
 
+
+void schedulerSetGestureEvent() {
+
+  CORE_DECLARE_IRQ_STATE;
+  CORE_ENTER_CRITICAL();
+
+  sl_bt_external_signal(evtGesture);
+
+
+  CORE_EXIT_CRITICAL();
+
+}
+
 //uint32_t getNextEvent()
 //{
 //  //Variable to store next event
@@ -145,6 +165,89 @@ void schedularSetI2CEvent()
 #ifdef DEVICE_IS_BLE_SERVER
 
 #if (DEVICE_IS_BLE_SERVER == 1)
+
+void Gesture_Handler()
+{
+  ble_data_struct_t *ble_data = getBleDataPtr();
+
+  if(isGestureAvailable())
+    {
+      switch(readGesture())
+      {
+        case DIR_UP:
+          LOG_INFO("UP\n\r");
+          ble_data->gesture_value = DIR_UP;
+          displayPrintf(DISPLAY_ROW_9, "Gesture = UP");
+          SendGestureValue(DIR_UP);
+         break;
+
+         case DIR_DOWN:
+          LOG_INFO("UP\n\r");
+          ble_data->gesture_value = DIR_DOWN;
+          displayPrintf(DISPLAY_ROW_9, "Gesture = DOWN");
+          SendGestureValue(DIR_DOWN);
+         break;
+
+         case DIR_LEFT:
+           LOG_INFO("LEFT\n\r");
+           ble_data->gesture_value = DIR_LEFT;
+           displayPrintf(DISPLAY_ROW_9, "Gesture = LEFT");
+           SendGestureValue(DIR_LEFT);
+         break;
+
+         case DIR_NEAR:
+          LOG_INFO("NEAR\n\r");
+          ble_data->gesture_value = DIR_NEAR;
+          displayPrintf(DISPLAY_ROW_9, "Gesture = NEAR");
+          SendGestureValue(DIR_NEAR);
+         break;
+
+         case DIR_FAR:
+           LOG_INFO("FAR\n\r");
+           ble_data->gesture_value = DIR_FAR;
+           displayPrintf(DISPLAY_ROW_9, "Gesture = FAR");
+           SendGestureValue(DIR_FAR);
+         break;
+
+         default:
+           LOG_INFO("NONE");
+           ble_data->gesture_value = DIR_NONE;
+           displayPrintf(DISPLAY_ROW_9, "Gesture = NONE");
+           SendGestureValue(DIR_NONE);
+         break;
+      }
+    }
+}
+
+
+void Gesture_State_Machine(sl_bt_msg_t *evt)
+{
+  GESTURE_STATE currentState;
+  static GESTURE_STATE nextState = State_CheckGesture;
+  currentState = nextState;
+
+  switch(currentState)
+  {
+    case State_CheckGesture:
+      nextState = State_CheckGesture;
+      if(evt->data.evt_system_external_signal.extsignals == evtGesture)
+        {
+          LOG_INFO("Gesture detected\n\r");
+          Gesture_Handler();
+          nextState = State_Return_to_Check;
+        }
+      break;
+
+    case State_Return_to_Check:
+      nextState = State_CheckGesture;
+      break;
+
+    default:
+      LOG_ERROR("Undefined state in Gesture State Machine\r\n");
+      break;
+  }
+}
+
 //void Temperature_State_Machine(sl_bt_msg_t *evt)
 //{
 //  ble_data_struct_t *ble_data = getBleDataPtr();
@@ -300,9 +403,10 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
       //          LOG_INFO("\r\n Open");
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_connection_opened_id)
         {
-          // LOG_INFO("To open");
-          uint8_t SERVICE_UUID[2] = {0x09,0x18};
-          sc = sl_bt_gatt_discover_primary_services_by_uuid(ble_data->connection_handle, sizeof(SERVICE_UUID), &SERVICE_UUID[0]); // DOS: always good to use & force the compiler to calculate the address
+           LOG_INFO("To open");
+          //uint8_t SERVICE_UUID[2] = {0x09,0x18};
+          uint8_t GESTURE_SERVICE_UUID[16] = {0x9e, 0x97, 0x2e, 0x10, 0x8d, 0x06, 0x65, 0x90, 0xee, 0x42, 0x99, 0x38, 0x23, 0x16, 0xf9, 0xd0};
+          sc = sl_bt_gatt_discover_primary_services_by_uuid(ble_data->connection_handle, sizeof(GESTURE_SERVICE_UUID), &GESTURE_SERVICE_UUID[0]); // DOS: always good to use & force the compiler to calculate the address
           if (sc != SL_STATUS_OK)
             LOG_ERROR("\n\rsl_bt_gatt_discover_primary_services_by_uuid() for htm returned != 0 status=0x%04x", (unsigned int) sc);
 
@@ -314,12 +418,12 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
       //          LOG_INFO("\r\n 2... Services_Discovered");
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_gatt_procedure_completed_id)
         {
-          //LOG_INFO("To Services_Discovered htm");
-          uint8_t CHARACTERISTIC_UUID[2] = {0x1c,0x2a};
-          sc = sl_bt_gatt_discover_characteristics_by_uuid(ble_data->connection_handle, ble_data->client_service_handle_htm, sizeof(CHARACTERISTIC_UUID), &CHARACTERISTIC_UUID[0]); // DOS: always good to use & force the compiler to calculate the address
+          LOG_INFO("To Services_Discovered htm");
+          //uint8_t CHARACTERISTIC_UUID[2] = {0x1c,0x2a};
+          uint8_t GESTURE_CHAR_UUID[16] = {0x9a, 0xdf, 0xcf, 0xe2, 0xd4, 0x08, 0x8e, 0x83, 0x0f, 0x40, 0x64, 0x2c, 0xb9, 0x3d, 0xe6, 0x32};
+          sc = sl_bt_gatt_discover_characteristics_by_uuid(ble_data->connection_handle, ble_data->client_service_handle_gesture, sizeof(GESTURE_CHAR_UUID), &GESTURE_CHAR_UUID[0]); // DOS: always good to use & force the compiler to calculate the address
           if (sc != SL_STATUS_OK)
             LOG_ERROR("sl_bt_gatt_discover_characteristics_by_uuid() for htm returned != 0 status=0x%04x", (unsigned int) sc);
-
 
           nextState = Characteristics_Discovered;
         }
@@ -334,9 +438,9 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
     case Characteristics_Discovered:
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_gatt_procedure_completed_id)
         {
-           // LOG_INFO("To Characteristics_Discovered htm");
+           LOG_INFO("To Characteristics_Discovered htm");
           //              LOG_INFO("\r\n Characteristics_Discovered");
-          sc = sl_bt_gatt_set_characteristic_notification(ble_data->connection_handle, ble_data->characteristic_htm, sl_bt_gatt_indication);
+          sc = sl_bt_gatt_set_characteristic_notification(ble_data->connection_handle, ble_data->characteristic_gesture, sl_bt_gatt_notification);
           if (sc != SL_STATUS_OK)
             LOG_ERROR("sl_bt_gatt_characteristic_notification() returned != 0 status=0x%04x", (unsigned int) sc);
           nextState = Enable_Notification;
@@ -354,7 +458,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
     case Enable_Notification:
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_gatt_procedure_completed_id)
         {
-          //  LOG_INFO("To Enable_Notification htm");
+            LOG_INFO("To Enable_Notification htm");
           //              LOG_INFO("\r\n Enable_Notification");
           //ble_data->ok_to_send_htm_indications = true;
           displayPrintf(DISPLAY_ROW_CONNECTION, "Handling Indications");
@@ -373,7 +477,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
     case Discover_Service_for_Button:
 //      if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_gatt_procedure_completed_id)
 //        {
-        //  LOG_INFO("To Discover_Service_for_Button");
+          LOG_INFO("To Discover_Service_for_Button");
           //00000001-38c8-433e-87ec-652a2d136289
 
           sc = sl_bt_gatt_discover_primary_services_by_uuid(ble_data->connection_handle, sizeof(SERVICE_UUID_BUTTON), &SERVICE_UUID_BUTTON[0]); // DOS: always good to use & force the compiler to calculate the address
@@ -393,7 +497,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
     case Discover_Char_For_Button:
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_gatt_procedure_completed_id)
         {
-         // LOG_INFO("To Discover_Char_For_Button");
+          LOG_INFO("To Discover_Char_For_Button");
           //0000002-38c8-433e-87ec-652a2d136289
           uint8_t BUTTON_CHARACTERISTIC_UUID[16] = {0x89, 0x62, 0x13, 0x2d, 0x2a, 0x65, 0xec, 0x87, 0x3e, 0x43, 0xc8, 0x38, 0x02, 0x00, 0x00, 0x00};
           sc = sl_bt_gatt_discover_characteristics_by_uuid(ble_data->connection_handle, ble_data->client_service_handle_button, sizeof(BUTTON_CHARACTERISTIC_UUID), &BUTTON_CHARACTERISTIC_UUID[0]); // DOS: always good to use & force the compiler to calculate the address
@@ -414,7 +518,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
     case SET_Notification_For_Button:
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_gatt_procedure_completed_id)
       {
-         // LOG_INFO("To SET_Notification_For_Button");
+          LOG_INFO("To SET_Notification_For_Button");
       sc = sl_bt_gatt_set_characteristic_notification(ble_data->connection_handle, ble_data->characteristic_button, sl_bt_gatt_notification);
       if (sc != SL_STATUS_OK)
         LOG_ERROR("sl_bt_gatt_characteristic_notification() returned != 0 status=0x%04x", (unsigned int) sc);
@@ -431,7 +535,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
     case EN_Notification_For_Button:
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_gatt_procedure_completed_id)
         {
-        //  LOG_INFO("To EN_Notification_For_Button");
+          LOG_INFO("To EN_Notification_For_Button");
           //  LOG_INFO("To4");
                         LOG_INFO("\r\n Enable_Notification");
           ble_data->button_notification = true;
@@ -450,7 +554,7 @@ void Discovery_State_Machine(sl_bt_msg_t *evt)
     case Idle:
       if(SL_BT_MSG_ID(evt->header) == sl_bt_evt_connection_closed_id)
         {
-          //LOG_INFO("To Idle");
+          LOG_INFO("To Idle");
           //  LOG_INFO("To0");
           nextState = Open;
           displayPrintf(DISPLAY_ROW_BTADDR2, " ");

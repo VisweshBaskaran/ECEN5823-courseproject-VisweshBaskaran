@@ -38,7 +38,8 @@ typedef enum
   evtPB0Release = 16,
   evtPB1Push = 32,
   evtPB1Release = 64,
-  evtPB1PB0Pushed = 128
+  evtPB1PB0Pushed = 128,
+  evtGesture = 256
 }event_list;
 
 
@@ -50,6 +51,12 @@ typedef enum
   State_I2CRead,
   State_ReaDTeMP,
 }State;
+
+typedef enum
+{
+ State_CheckGesture,
+ State_Return_to_Check,
+}GESTURE_STATE;
 
 /*
 @author         Aditi Nanaware
@@ -118,7 +125,10 @@ void schedularSetI2CEvent();
 @return         void
 @resources      Lecture Slides
 */
+void schedulerSetGestureEvent();
 void Temperature_State_Machine();
+void Gesture_State_Machine();
+void Gesture_Handler();
 
 typedef enum
 {

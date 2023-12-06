@@ -45,7 +45,7 @@
 #define UINT32_TO_BITSTREAM(p, n) { *(p)++ = (uint8_t)(n); *(p)++ = (uint8_t)((n) >> 8); \
                                     *(p)++ = (uint8_t)((n) >> 16); *(p)++ = (uint8_t)((n) >> 24); }
 
-#define UINT32_TO_FLOAT(m, e) (((uint32_t)(m) & 0x00FFFFFFU) | (uint32_t)((int32_t)(e) << 24))
+//#define UINT32_TO_FLOAT(m, e) (((uint32_t)(m) & 0x00FFFFFFU) | (uint32_t)((int32_t)(e) << 24))
 
 #define sl_bt_gatt_public_addr (0)
 
@@ -98,8 +98,8 @@ uint8_t myAddressType;
 // The advertising set handle allocated from Bluetooth stack.
 uint8_t advertisingSetHandle;
 bool connection_open; // true when in an open connection
-bool ok_to_send_htm_indications; // true when client enabled indications
-bool indication_in_flight; // true when an indication is in-flight
+//bool ok_to_send_htm_indications; // true when client enabled indications
+//bool indication_in_flight; // true when an indication is in-flight
 uint8_t connection_handle;
 uint8_t security_mode;
 
@@ -107,17 +107,24 @@ bool passkey;
 uint8_t bonding_handle;
 bool button_pressed_flag;
 bool button_notification;
+
+bool gesture_notification;
+uint32_t client_service_handle_gesture;
+uint16_t characteristic_gesture;
+uint8_t gesture_value;
+bool is_gesture_on;
+
 //bool bonding;
 bool bonded;
 uint16_t reason;
 
 // values unique for client
 bool procedure_complete_flag;
-uint32_t client_service_handle_htm;
+//uint32_t client_service_handle_htm;
 uint32_t client_service_handle_button;
-uint16_t characteristic_htm;
+//uint16_t characteristic_htm;
 uint16_t characteristic_button;
-uint32_t Temp_Value;
+//uint32_t Temp_Value;
 
 } ble_data_struct_t;
 
@@ -141,7 +148,7 @@ void handle_ble_event(sl_bt_msg_t *evt);
 @return         void
 @resources      Lecture Slides
 */
-void TemperatuetoFloat(uint32_t temperature_in_c);
+//void TemperatuetoFloat(uint32_t temperature_in_c);
 
 /*
 @author         Aditi Nanaware
@@ -161,7 +168,7 @@ ble_data_struct_t* getBleDataPtr();
 @return         int32_t
 @resources      Lecture Slides
 */
-int32_t FLOAT_TO_INT32(const uint8_t *value_start_little_endian);
+//int32_t FLOAT_TO_INT32(const uint8_t *value_start_little_endian);
 
 // Modern C (circa 2021 does it this way)
 // This is referred to as an anonymous struct definition.
@@ -244,7 +251,7 @@ void     get_queue_status (uint32_t *_wptr, uint32_t *_rptr, bool *_full, bool *
 @resources none
 */
 uint32_t get_queue_depth (void);
-
+void SendGestureValue(uint8_t value);
 void handleSystemSsofttimer(ble_data_struct_t *BleData);
 
 #endif /* SRC_BLE_H_ */
