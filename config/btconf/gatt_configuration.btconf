@@ -169,4 +169,17 @@ Summary:
       </descriptor>
     </characteristic>
   </service>
+
+  <!--Gesture Service-->
+  <service advertise="true" name="Gesture Service" requirement="mandatory" sourceId="" type="primary" uuid="d0f91623-3899-42ee-9065-068d102e979e">
+
+    <!--gesture state-->
+    <characteristic const="false" id="gesture_state" name="gesture state" sourceId="" uuid="32e63db9-2c64-400f-838e-08d4e2cfdf9a">
+      <value length="1" type="hex" variable_length="false">00</value>
+      <properties>
+        <read authenticated="false" bonded="true" encrypted="false"/>
+        <notify authenticated="false" bonded="true" encrypted="false"/>
+      </properties>
+    </characteristic>
+  </service>
 </gatt>

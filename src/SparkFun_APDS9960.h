@@ -48,7 +48,7 @@
 #define APDS9960_ID_2           0x9C
 
 /* Misc parameters */
-#define FIFO_PAUSE_TIME         300      // Wait period (ms) between FIFO reads
+#define FIFO_PAUSE_TIME         3000000      // Wait period (ms) between FIFO reads
 
 /* APDS-9960 register addresses */
 #define APDS9960_ENABLE         0x80
@@ -233,7 +233,6 @@ typedef struct gesture_data_type {
     uint8_t in_threshold;
     uint8_t out_threshold;
 } gesture_data_type;
-
 /* APDS9960 Class */
 //class SparkFun_APDS9960 {
 //public:
@@ -242,7 +241,7 @@ typedef struct gesture_data_type {
 
     bool SparkFun_APDS9960_init();
 //    uint8_t getStatusRegister();
-//    uint8_t getMode();
+    uint8_t getMode();
     bool setMode(uint8_t mode, uint8_t enable);
 
     /* Turn the APDS-9960 on and off */

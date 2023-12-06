@@ -179,7 +179,7 @@ SL_WEAK void app_init(void)
   gpioInit();
   oscillator_init();
   initLETIMER0();
-
+  I2CInit();
   //enable peripheral (s) to generate IRQs
 
 //Add power requirements
@@ -281,7 +281,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
 #if (DEVICE_IS_BLE_SERVER == 1)
   // sequence through states driven by events
   // Temperature_State_Machine(evt);    // put this code in scheduler.c/.h
-#else
+   Gesture_State_Machine(evt);
+   #else
    Discovery_State_Machine(evt);
 #endif
 } // sl_bt_on_event()

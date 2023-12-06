@@ -65,6 +65,11 @@ uint8_t SERVICE_UUID[2] = {0x09,0x18};
 uint8_t BUTTON_SERVICE_UUID[16] = {0x89, 0x62, 0x13, 0x2d, 0x2a, 0x65, 0xec, 0x87, 0x3e, 0x43, 0xc8, 0x38, 0x01, 0x00, 0x00, 0x00};
 
 
+//d0f91623-3899-42ee-9065-068d102e979e
+uint8_t GESTURE_SERVICE_UUID[16] = {0x9e, 0x97, 0x2e, 0x10, 0x8d, 0x06, 0x65, 0x90, 0xee, 0x42, 0x99, 0x38, 0x23, 0x16, 0xf9, 0xd0};
+                                          //32e63db9-2c64-400f-838e-08d4e2cfdf9a
+uint8_t GESTURE_CHAR_UUID[16] = {0x9a, 0xdf, 0xcf, 0xe2, 0xd4, 0x08, 0x8e, 0x83, 0x0f, 0x40, 0x64, 0x2c, 0xb9, 0x3d, 0xe6, 0x32};
+
 // function that returns a pointer to the
 // BLE private data
 ble_data_struct_t* getBleDataPtr()
@@ -333,7 +338,7 @@ void handle_ble_event(sl_bt_msg_t *evt)
           LOG_ERROR("sl_bt_advertiser_start() returned != 0 status=0x%04x", (unsigned int) sc);
         }
       displayPrintf(DISPLAY_ROW_BTADDR, "%x:%x:%x:%x:%x:%x ",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5] );
-      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A9");
+      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"PROJECT");
 
       sc = sl_bt_sm_configure(0x0F, sm_io_capability_displayyesno);
       if (sc != SL_STATUS_OK)
@@ -341,8 +346,8 @@ void handle_ble_event(sl_bt_msg_t *evt)
           LOG_ERROR("sl_bt_sm_configure() returned != 0 status=0x%04x", (unsigned int) sc);
         }
       ble_data.connection_open = false;
-      ble_data.ok_to_send_htm_indications = false;
-      ble_data.indication_in_flight = false;
+      //ble_data.ok_to_send_htm_indications = false;
+      //ble_data.indication_in_flight = false;
       sl_bt_sm_delete_bondings();
       break;
     case sl_bt_evt_connection_opened_id:
@@ -716,10 +721,11 @@ void handle_ble_event(sl_bt_msg_t *evt)
       displayPrintf(DISPLAY_ROW_NAME, "Client");
       // handle boot event
       ble_data.connection_open = false;
-      ble_data.ok_to_send_htm_indications = false;
+      //ble_data.ok_to_send_htm_indications = false;
       ble_data.procedure_complete_flag = false;
       ble_data.connection_open = false;
       ble_data.button_notification = true; // DOS - always initialize variables!!! state machine initially enables, so set true
+      ble_data.gesture_notification = true;
       /***************************************************************************//**
        *
        * Read the Bluetooth identity address used by the device, which can be a public
@@ -827,7 +833,7 @@ void handle_ble_event(sl_bt_msg_t *evt)
       displayPrintf(DISPLAY_ROW_CONNECTION, "Discovering");
 
       displayPrintf(DISPLAY_ROW_BTADDR, "%x:%x:%x:%x:%x:%x ",ble_data.myAddress.addr[0],ble_data.myAddress.addr[1],ble_data.myAddress.addr[2],ble_data.myAddress.addr[3],ble_data.myAddress.addr[4],ble_data.myAddress.addr[5] );
-      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A9");
+      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"PROJECT");
 
       sc = sl_bt_sm_configure(0x0F, sm_io_capability_displayyesno);
       if (sc != SL_STATUS_OK)
@@ -879,11 +885,11 @@ void handle_ble_event(sl_bt_msg_t *evt)
       ble_data.connection_open = false;
       ble_data.procedure_complete_flag = false; // DOS
 
-      ble_data.ok_to_send_htm_indications = false;
+     // ble_data.ok_to_send_htm_indications = false;
       displayPrintf(DISPLAY_ROW_CONNECTION, "Discovering");
       displayPrintf(DISPLAY_ROW_TEMPVALUE, " "," " );
       displayPrintf(DISPLAY_ROW_BTADDR2,"");
-      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"A9");
+      displayPrintf(DISPLAY_ROW_ASSIGNMENT,"PROJECT");
       displayPrintf(DISPLAY_ROW_9," ");
       sl_bt_sm_delete_bondings();
       memset(&ble_data, 0, sizeof(ble_data_struct_t));
@@ -901,10 +907,10 @@ void handle_ble_event(sl_bt_msg_t *evt)
       //ble_data.connection_handle = evt->data.evt_gatt_service.connection;
 
       if (memcmp(&evt->data.evt_gatt_service.uuid.data[0],
-                 &SERVICE_UUID[0],
+                 &GESTURE_SERVICE_UUID[0],
                  evt->data.evt_gatt_service.uuid.len) == 0)
       {
-      ble_data.client_service_handle_htm = evt->data.evt_gatt_service.service;
+      ble_data.client_service_handle_gesture = evt->data.evt_gatt_service.service;
      // LOG_INFO(">>> Found HTM Service");
       }
 
@@ -927,10 +933,10 @@ void handle_ble_event(sl_bt_msg_t *evt)
 
 
       if (memcmp(&evt->data.evt_gatt_characteristic.uuid.data[0],
-                 &CHARACTERISTIC_UUID[0],
+                 &GESTURE_CHAR_UUID[0],
                  evt->data.evt_gatt_characteristic.uuid.len) == 0)
      {
-      ble_data.characteristic_htm = evt->data.evt_gatt_characteristic.characteristic;
+      ble_data.characteristic_gesture = evt->data.evt_gatt_characteristic.characteristic;
       //LOG_INFO(">>> Found HTM Char.");
      }
       // Button characteristic?, save char handle
@@ -1022,6 +1028,45 @@ void handle_ble_event(sl_bt_msg_t *evt)
 //            }
         }
 
+
+      if(evt->data.evt_gatt_characteristic_value.characteristic == ble_data.characteristic_gesture)
+        {
+          if(evt->data.evt_gatt_characteristic_value.value.data[0] == 0x01)
+            {
+              ble_data.gesture_value = 0x01;
+              displayPrintf(DISPLAY_ROW_9, "Gesture = LEFT");
+            }
+          else if(evt->data.evt_gatt_characteristic_value.value.data[0] == 0x02)
+            {
+              ble_data.gesture_value = 0x02;
+              displayPrintf(DISPLAY_ROW_9, "Gesture = RIGHT");
+            }
+          else if(evt->data.evt_gatt_characteristic_value.value.data[0] == 0x03)
+            {
+              ble_data.gesture_value = 0x03;
+              displayPrintf(DISPLAY_ROW_9, "Gesture = UP");
+            }
+          else if(evt->data.evt_gatt_characteristic_value.value.data[0] == 0x04)
+            {
+              ble_data.gesture_value = 0x04;
+              displayPrintf(DISPLAY_ROW_9, "Gesture = DOWN");
+            }
+          else if(evt->data.evt_gatt_characteristic_value.value.data[0] == 0x05)
+            {
+              ble_data.gesture_value = 0x05;
+              displayPrintf(DISPLAY_ROW_9, "Gesture = NEAR");
+            }
+          else if(evt->data.evt_gatt_characteristic_value.value.data[0] == 0x06)
+            {
+              ble_data.gesture_value = 0x06;
+              displayPrintf(DISPLAY_ROW_9, "Gesture = FAR");
+            }
+          else if(evt->data.evt_gatt_characteristic_value.value.data[0] == 0x00)
+            {
+              displayPrintf(DISPLAY_ROW_9, "Gesture = NONE");
+            }
+
+        }
       break;
 
     case sl_bt_evt_system_external_signal_id:
@@ -1155,75 +1200,75 @@ void handle_ble_event(sl_bt_msg_t *evt)
 }
 
 
-void TemperatuetoFloat(uint32_t temperature_in_c)
-{
-  uint8_t htm_temperature_buffer[5];
-  uint8_t *p = htm_temperature_buffer;
-  UINT8_TO_BITSTREAM(p,flag);
-  uint32_t htm_temperature_flt;
-  htm_temperature_flt = UINT32_TO_FLOAT(temperature_in_c*1000, -3);
-
-  // Convert temperature to bitstream and place it in the htm_temperature_buffer
-  UINT32_TO_BITSTREAM(p, htm_temperature_flt);
-  // -------------------------------
-  // Write our local GATT DB
-  // -------------------------------
-  sc = sl_bt_gatt_server_write_attribute_value
-      (
-          gattdb_temperature_measurement, // handle from gatt_db.h
-          0, // offset
-          4, // length
-          (const uint8_t*)&temperature_in_c // pointer to buffer where data is
-      );
-  if (sc != SL_STATUS_OK)
-    {
-      LOG_ERROR("sl_bt_gatt_server_write_attribute_value() returned != 0 status=0x%04x", (unsigned int) sc);
-    }
-
-  if ((ble_data.ok_to_send_htm_indications) && (ble_data.connection_open))
-    {
-     if(ble_data.indication_in_flight == false)
-       {
-
-          sc = sl_bt_gatt_server_send_notification
-              (
-                  ble_data.connection_handle,
-                  gattdb_temperature_measurement, // handle from gatt_db.h
-                  5,
-                  &htm_temperature_buffer[0]    // in IEEE-11073 format
-              );
-          if (sc != SL_STATUS_OK)
-            {
-              LOG_ERROR("sl_bt_gatt_server_send_notification() returned != 0 status=0x%04x", (unsigned int) sc);
-            }
-          else
-            {
-              //Set indication_in_flight flag
-              ble_data.indication_in_flight = true;
-              displayPrintf(DISPLAY_ROW_TEMPVALUE, "Temp= %d C", temperature_in_c);
-              //LOG_INFO("HTM Ind sent"); // DOS
-            }
-       }
-      else
-        {
-          // DOS            bool writeSuccess = write_queue(gattdb_temperature_measurement, sizeof(htm_temperature_buffer), htm_temperature_buffer);
-          bool writeSuccess = write_queue(gattdb_temperature_measurement, sizeof(htm_temperature_buffer), &htm_temperature_buffer[0]);
-          if (writeSuccess != false)
-            {
-              LOG_ERROR("write_queue() returned != 0 status=0x%04x", (unsigned int) sc);
-            }
-          else
-            {
-             // LOG_INFO("HTM Ind queued"); // DOS
-            }
-        }
-    }
-}
+//void TemperatuetoFloat(uint32_t temperature_in_c)
+//{
+//  uint8_t htm_temperature_buffer[5];
+//  uint8_t *p = htm_temperature_buffer;
+//  UINT8_TO_BITSTREAM(p,flag);
+//  uint32_t htm_temperature_flt;
+//  htm_temperature_flt = UINT32_TO_FLOAT(temperature_in_c*1000, -3);
+//
+//  // Convert temperature to bitstream and place it in the htm_temperature_buffer
+//  UINT32_TO_BITSTREAM(p, htm_temperature_flt);
+//  // -------------------------------
+//  // Write our local GATT DB
+//  // -------------------------------
+//  sc = sl_bt_gatt_server_write_attribute_value
+//      (
+//          gattdb_temperature_measurement, // handle from gatt_db.h
+//          0, // offset
+//          4, // length
+//          (const uint8_t*)&temperature_in_c // pointer to buffer where data is
+//      );
+//  if (sc != SL_STATUS_OK)
+//    {
+//      LOG_ERROR("sl_bt_gatt_server_write_attribute_value() returned != 0 status=0x%04x", (unsigned int) sc);
+//    }
+//
+//  if ((ble_data.ok_to_send_htm_indications) && (ble_data.connection_open))
+//    {
+//     if(ble_data.indication_in_flight == false)
+//       {
+//
+//          sc = sl_bt_gatt_server_send_notification
+//              (
+//                  ble_data.connection_handle,
+//                  gattdb_temperature_measurement, // handle from gatt_db.h
+//                  5,
+//                  &htm_temperature_buffer[0]    // in IEEE-11073 format
+//              );
+//          if (sc != SL_STATUS_OK)
+//            {
+//              LOG_ERROR("sl_bt_gatt_server_send_notification() returned != 0 status=0x%04x", (unsigned int) sc);
+//            }
+//          else
+//            {
+//              //Set indication_in_flight flag
+//              ble_data.indication_in_flight = true;
+//              displayPrintf(DISPLAY_ROW_TEMPVALUE, "Temp= %d C", temperature_in_c);
+//              //LOG_INFO("HTM Ind sent"); // DOS
+//            }
+//       }
+//      else
+//        {
+//          // DOS            bool writeSuccess = write_queue(gattdb_temperature_measurement, sizeof(htm_temperature_buffer), htm_temperature_buffer);
+//          bool writeSuccess = write_queue(gattdb_temperature_measurement, sizeof(htm_temperature_buffer), &htm_temperature_buffer[0]);
+//          if (writeSuccess != false)
+//            {
+//              LOG_ERROR("write_queue() returned != 0 status=0x%04x", (unsigned int) sc);
+//            }
+//          else
+//            {
+//             // LOG_INFO("HTM Ind queued"); // DOS
+//            }
+//        }
+//    }
+//}
 
 
 // -----------------------------------------------
 // Private function, original from Dan Walkes. I fixed a sign extension bug.
-// We'll need this for Client A9 assignment to convert health thermometer
+// We'll need this for Client PROJECT assignment to convert health thermometer
 // indications back to an integer. Convert IEEE-11073 32-bit float to signed integer.
 // -----------------------------------------------
 
@@ -1281,4 +1326,39 @@ void handleSystemSsofttimer( ble_data_struct_t *BleData)
           // Process the data read from the queue using charHandle, bufferLength, and buffer.
 
       //}
+}
+
+
+void SendGestureValue(uint8_t value)
+{
+  ble_data_struct_t *ble_data = getBleDataPtr();
+
+  uint8_t gesture_buffer[2];
+
+  gesture_buffer[0] = 0;
+  gesture_buffer[1] = value;
+
+  if(ble_data ->connection_open == true)
+    {
+      sc = sl_bt_gatt_server_write_attribute_value(
+                   gattdb_gesture_state,
+                   0,
+                   1,
+                   (const uint8_t*)&gesture_buffer[1]
+               );
+      if (sc != SL_STATUS_OK)
+        {
+          LOG_ERROR("sl_bt_gatt_server_write_attribute_value() returned != 0 status=0x%04x", (unsigned int)sc);
+        }
+    }
+  if((ble_data->button_notification) && (ble_data->connection_open))
+    {
+          sc = sl_bt_gatt_server_send_notification(ble_data->connection_handle,gattdb_gesture_state, sizeof(gesture_buffer), &gesture_buffer[0]);
+          if (sc != SL_STATUS_OK)
+            {
+              LOG_ERROR("sl_bt_gatt_server_send_notification() returned != 0 status=0x%04x", (unsigned int)sc);
+            }
+     }
+
+
 }

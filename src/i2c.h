@@ -70,6 +70,6 @@ uint32_t write_write(uint8_t reg, uint8_t *Data);
 @return         int32_t
 @resources      Lecture Slides
 */
-uint32_t read_read(uint8_t reg, uint8_t *Data, uint8_t len);
+//uint32_t read_read(uint8_t reg, uint8_t *Data, uint8_t len);
 
 #endif /* SRC_I2C_H_ */
